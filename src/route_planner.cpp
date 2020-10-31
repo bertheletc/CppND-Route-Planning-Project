@@ -28,17 +28,16 @@ void RoutePlanner::AddNeighbors(RouteModel::Node *current_node) {
     // For each newly added neighbor set the parent, the h_value, the g_value, add to open_list, and set visited to true 
     for (RouteModel::Node *new_neighbor: current_node->neighbors) {
         new_neighbor->parent = current_node;
-        new_neighbor->h_value = this->CalculateHValue(new_neighbor);
+        new_neighbor->h_value = CalculateHValue(new_neighbor);
         new_neighbor->g_value = current_node->g_value + new_neighbor->distance(*current_node);
-        this->open_list.push_back(new_neighbor);
+        open_list.push_back(new_neighbor);
         new_neighbor->visited = true;
     }
-
 }
 
 
 // Add comparator function to be used with sort
-bool RoutePlanner::Compare(const RouteModel::Node* a, const RouteModel::Node* b) {
+static bool Compare(const RouteModel::Node* a, const RouteModel::Node* b) {
     float f1 = a->g_value + a->h_value;
     float f2 = b->g_value + b->h_value;
     return f1 > f2;
@@ -47,7 +46,7 @@ bool RoutePlanner::Compare(const RouteModel::Node* a, const RouteModel::Node* b)
 
 RouteModel::Node *RoutePlanner::NextNode() {
     // Sort the list according to f values of each node in the open list
-    std::sort(this->open_list.begin(),this->open_list.end(),this->Compare);
+    std::sort(open_list.begin(),open_list.end(),Compare);
     
     // Create new pointer to node with lowest f value, remove node from open list, and return
     RouteModel::Node *next_node = open_list.back();
@@ -96,7 +95,27 @@ std::vector<RouteModel::Node> RoutePlanner::ConstructFinalPath(RouteModel::Node 
 
 void RoutePlanner::AStarSearch() {
     RouteModel::Node *current_node = nullptr;
+    // Start by adding all neighbors of the start node to the open list
+    current_node = start_node;
+    open_list.push_back(current_node);
+    current_node->visited = true;
+   
+    // Continue looping until the open list is empty
+    while (open_list.size() > 0) {
+        // Set the current node after sorting the open list
+        current_node = NextNode();
+        
+        // std::cout << "open_list size is: " << open_list.size() << "\n";
+        //
+        if (current_node->x == end_node->x && current_node->y == end_node->y) {
+            m_Model.path = ConstructFinalPath(current_node);
+            return;
+        }
 
-    // TODO: Implement your solution here.
+        // If we arent done yet expand the search to current nodes neighbors
+        AddNeighbors(current_node);
+    }
 
+    // We've run out of new nodes to explore and haven't found a path.
+    std::cout << "No path found!" << "\n";
 }
