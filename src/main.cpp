@@ -63,7 +63,7 @@ int main(int argc, const char **argv)
     // Build Model.
     RouteModel model{osm_data};
 
-    // Create RoutePlanner object and perform A* search.
+    // Create RoutePlanner object with user defined start/end, and perform A* search.
     RoutePlanner route_planner{model, start_x, start_y, end_x, end_y};
     route_planner.AStarSearch();
 
